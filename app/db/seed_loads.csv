@@ -1,0 +1,31 @@
+load_id,origin,destination,pickup_datetime,delivery_datetime,equipment_type,loadboard_rate,weight,commodity_type,miles,notes,num_of_pieces,dimensions,status
+L-1001,Chicago IL,Dallas TX,2026-05-13 09:00,2026-05-15 15:00,Dry Van,2450,38000,Consumer goods,925,Appointment required,24,48x96,available
+L-1002,Chicago IL,Houston TX,2026-05-13 14:00,2026-05-15 20:00,Reefer,3100,41000,Fresh produce,1090,Temp 34F,18,48x96,available
+L-1003,Chicago IL,Atlanta GA,2026-05-14 07:00,2026-05-16 18:00,Dry Van,2200,36000,Retail merchandise,720,Team driver preferred,30,48x96,available
+L-1004,Chicago IL,Memphis TN,2026-05-13 06:00,2026-05-14 14:00,Flatbed,1850,44000,Steel coils,530,Tarps required,12,48x96,available
+L-1005,Chicago IL,Kansas City MO,2026-05-14 10:00,2026-05-15 16:00,Dry Van,980,32000,Auto parts,510,,16,48x96,available
+L-1006,Dallas TX,Los Angeles CA,2026-05-15 08:00,2026-05-17 20:00,Dry Van,3200,39000,Consumer electronics,1435,High value load,22,53x102,available
+L-1007,Dallas TX,Chicago IL,2026-05-14 06:00,2026-05-16 14:00,Reefer,2900,40000,Dairy products,930,Temp 38F,20,48x96,available
+L-1008,Dallas TX,Atlanta GA,2026-05-14 09:00,2026-05-16 17:00,Dry Van,1750,35000,Clothing,780,,18,48x96,available
+L-1009,Dallas TX,Denver CO,2026-05-15 07:00,2026-05-17 19:00,Flatbed,2100,43000,Construction materials,880,Permit may be needed,10,48x96,available
+L-1010,Dallas TX,Phoenix AZ,2026-05-16 08:00,2026-05-18 18:00,Dry Van,1650,37000,Packaged food,1000,,24,48x96,available
+L-1011,Los Angeles CA,Chicago IL,2026-05-14 05:00,2026-05-17 18:00,Dry Van,3500,38500,Consumer goods,2020,Team driver required,14,53x102,available
+L-1012,Los Angeles CA,Seattle WA,2026-05-15 06:00,2026-05-17 14:00,Reefer,2400,39000,Fresh seafood,1140,Temp 32F,16,48x96,available
+L-1013,Los Angeles CA,Dallas TX,2026-05-16 07:00,2026-05-18 19:00,Flatbed,2750,45000,Industrial equipment,1435,Oversize possible,8,48x96,available
+L-1014,Los Angeles CA,Phoenix AZ,2026-05-13 12:00,2026-05-14 10:00,Dry Van,850,33000,Retail merchandise,370,,30,48x96,available
+L-1015,Los Angeles CA,Denver CO,2026-05-15 08:00,2026-05-17 20:00,Dry Van,2050,36000,Auto parts,1020,Fragile,20,53x102,available
+L-1016,Atlanta GA,Chicago IL,2026-05-14 07:00,2026-05-16 15:00,Dry Van,1900,37000,Healthcare products,720,,24,48x96,available
+L-1017,Atlanta GA,Dallas TX,2026-05-15 09:00,2026-05-17 17:00,Reefer,2300,41000,Frozen meals,780,Temp 0F,12,48x96,available
+L-1018,Atlanta GA,Miami FL,2026-05-13 10:00,2026-05-14 18:00,Dry Van,950,34000,Consumer goods,660,,28,48x96,available
+L-1019,Atlanta GA,New York NY,2026-05-14 06:00,2026-05-16 14:00,Flatbed,2100,42000,Lumber,870,Straps required,10,48x96,available
+L-1020,Atlanta GA,Memphis TN,2026-05-13 08:00,2026-05-14 12:00,Dry Van,780,31000,General freight,395,,36,48x96,available
+L-1021,Houston TX,Chicago IL,2026-05-15 07:00,2026-05-17 19:00,Dry Van,2600,38000,Chemical supplies,1090,Hazmat class 3,6,48x96,available
+L-1022,Houston TX,Los Angeles CA,2026-05-16 06:00,2026-05-18 22:00,Reefer,3400,40000,Pharmaceutical,1550,Temp 36F white glove,4,53x102,available
+L-1023,Houston TX,Atlanta GA,2026-05-14 08:00,2026-05-16 16:00,Dry Van,1600,35000,Plastics,790,,22,48x96,available
+L-1024,Houston TX,Dallas TX,2026-05-13 07:00,2026-05-13 16:00,Flatbed,750,44000,Steel pipes,240,Tarps required,18,48x96,available
+L-1025,Seattle WA,Los Angeles CA,2026-05-15 09:00,2026-05-17 21:00,Dry Van,2200,36000,Consumer electronics,1140,,20,53x102,available
+L-1026,Seattle WA,Chicago IL,2026-05-16 05:00,2026-05-19 18:00,Reefer,3600,39000,Fresh produce,2060,Temp 34F team driver,8,48x96,available
+L-1027,Denver CO,Chicago IL,2026-05-14 08:00,2026-05-16 16:00,Dry Van,1800,37000,Auto parts,1010,,24,48x96,available
+L-1028,Denver CO,Dallas TX,2026-05-15 07:00,2026-05-17 15:00,Flatbed,1550,43000,Construction materials,880,,14,48x96,available
+L-1029,Memphis TN,Chicago IL,2026-05-13 11:00,2026-05-14 19:00,Dry Van,1100,34000,General freight,530,,32,48x96,available
+L-1030,Miami FL,Atlanta GA,2026-05-14 10:00,2026-05-15 18:00,Reefer,1400,38000,Fresh produce,660,Temp 36F,16,48x96,available

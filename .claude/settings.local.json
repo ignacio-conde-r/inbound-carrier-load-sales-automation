@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(venv/Scripts/python -c \"from app.main import app; print\\('Import OK'\\)\")",
+      "Bash(venv/Scripts/python scripts/seed_db.py)",
+      "Bash(venv/Scripts/python -m pytest tests/)",
+      "Bash(venv/Scripts/python -m pytest tests/ -v)",
+      "Bash(timeout 5 venv/Scripts/python -c ' *)",
+      "Bash(venv/Scripts/python -m pytest -v)",
+      "Bash(venv/Scripts/uvicorn app.main:app --port 8000 --log-level error)",
+      "Bash(venv/Scripts/python scripts/smoke_test.py)",
+      "Bash(PYTHONUTF8=1 venv/Scripts/python scripts/smoke_test.py)",
+      "Bash(git *)"
+    ]
+  }
+}

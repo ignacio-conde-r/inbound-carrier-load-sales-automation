@@ -1,0 +1,59 @@
+### Health
+GET http://localhost:8000/health
+
+### Verify eligible carrier
+POST http://localhost:8000/carriers/verify
+Content-Type: application/json
+X-API-Key: hr-backend-key-2026-ignacio
+
+{"mc_number": "MC-123456"}
+
+### Verify ineligible carrier
+POST http://localhost:8000/carriers/verify
+Content-Type: application/json
+X-API-Key: hr-backend-key-2026-ignacio
+
+{"mc_number": "INACTIVE-999"}
+
+### Search all loads
+POST http://localhost:8000/loads/search
+Content-Type: application/json
+X-API-Key: hr-backend-key-2026-ignacio
+
+{}
+
+### Search Reefer loads from Chicago
+POST http://localhost:8000/loads/search
+Content-Type: application/json
+X-API-Key: hr-backend-key-2026-ignacio
+
+{"origin": "Chicago", "equipment_type": "Reefer"}
+
+### Negotiate - accept
+POST http://localhost:8000/negotiations/evaluate
+Content-Type: application/json
+X-API-Key: hr-backend-key-2026-ignacio
+
+{"call_id":"test-001","load_id":"L-1001","carrier_mc_number":"MC-123","round_number":1,"carrier_offer":2500.0}
+
+### Negotiate - reject round 3
+POST http://localhost:8000/negotiations/evaluate
+Content-Type: application/json
+X-API-Key: hr-backend-key-2026-ignacio
+
+{"call_id":"test-002","load_id":"L-1001","carrier_mc_number":"MC-123","round_number":3,"carrier_offer":9999.0}
+
+### Log a call
+POST http://localhost:8000/calls/log
+Content-Type: application/json
+X-API-Key: hr-backend-key-2026-ignacio
+
+{"call_id":"manual-001","carrier_mc_number":"MC-123456","carrier_name":"Test Carrier","selected_load_id":"L-1001","final_offer":2500.0,"outcome":"booked","sentiment":"positive","transcript_summary":"Test call."}
+
+### Metrics summary
+GET http://localhost:8000/metrics/summary
+X-API-Key: hr-backend-key-2026-ignacio
+
+### Recent calls
+GET http://localhost:8000/metrics/calls
+X-API-Key: hr-backend-key-2026-ignacio
