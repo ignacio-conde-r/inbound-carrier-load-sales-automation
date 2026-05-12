@@ -2,15 +2,19 @@ import streamlit as st
 import requests
 import pandas as pd
 from datetime import datetime
+import pytz
 import os
 
 API_BASE = os.getenv("API_BASE", "http://localhost:8000")
 API_KEY = "hr-backend-key-2026-ignacio"
 HEADERS = {"X-API-Key": API_KEY}
 
+central = pytz.timezone("America/Chicago")
+now_ct = datetime.now(central)
+
 st.set_page_config(page_title="HappyRobot Carrier Sales", page_icon="🚛", layout="wide")
 st.title("🚛 HappyRobot Inbound Carrier Sales — Operations Dashboard")
-st.caption(f"Live data from backend API · Refreshed at {datetime.now().strftime('%H:%M:%S')}")
+st.caption(f"Live data from backend API · Refreshed at {now_ct.strftime('%H:%M:%S')} CT")
 
 
 @st.cache_data(ttl=30)
@@ -65,12 +69,18 @@ if calls:
     st.subheader("📞 Recent Calls")
     df = pd.DataFrame(calls)
     if not df.empty:
-        # Normalize column names from API
         rename_map = {
             "carrier_mc_number": "carrier_mc",
             "selected_load_id": "load_id",
         }
         df = df.rename(columns=rename_map)
+
+        if "created_at" in df.columns:
+            df["created_at"] = (
+                pd.to_datetime(df["created_at"], utc=True)
+                .dt.tz_convert("America/Chicago")
+                .dt.strftime("%Y-%m-%d %H:%M:%S (CT)")
+            )
 
         outcome_colors = {
             "booked": "🟢",
@@ -88,7 +98,6 @@ if calls:
         df["mood"] = df["sentiment"].map(
             lambda x: sentiment_map.get(x, "❓") if pd.notna(x) else "❓"
         )
-        # Format final_offer
         if "final_offer" in df.columns:
             df["final_offer"] = df["final_offer"].apply(
                 lambda x: f"${x:,.0f}" if pd.notna(x) else "—"
@@ -116,7 +125,6 @@ if negotiations:
         fig2.update_layout(height=300, showlegend=False, margin=dict(t=40, b=0))
         st.plotly_chart(fig2, use_container_width=True)
 
-        # Shorten call_id for display
         df_neg["call_id"] = df_neg["call_id"].apply(
             lambda x: x[:8] + "..." if isinstance(x, str) and len(x) > 8 else x
         )
@@ -127,6 +135,28 @@ if negotiations:
         )
 
 st.divider()
-if st.button("🔄 Refresh data"):
-    st.cache_data.clear()
-    st.rerun()
+col_refresh, col_reset = st.columns([1, 1])
+
+with col_refresh:
+    if st.button("🔄 Refresh data"):
+        st.cache_data.clear()
+        st.rerun()
+
+with col_reset:
+    with st.expander("⚠️ Danger Zone"):
+        st.warning("This will delete ALL call logs and negotiation events from the database.")
+        if st.button("🗑️ Reset Dashboard Data", type="primary"):
+            try:
+                r = requests.delete(
+                    f"{API_BASE}/admin/reset",
+                    headers=HEADERS,
+                    timeout=5
+                )
+                if r.status_code == 200:
+                    st.success("✅ Data reset successfully.")
+                    st.cache_data.clear()
+                    st.rerun()
+                else:
+                    st.error(f"Error: {r.status_code}")
+            except Exception as e:
+                st.error(f"Request failed: {e}")
