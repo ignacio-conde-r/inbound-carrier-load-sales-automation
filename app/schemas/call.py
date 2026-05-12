@@ -4,7 +4,7 @@ from typing import Optional, Literal
 
 class CallLogRequest(BaseModel):
     happyrobot_run_id: Optional[str] = None
-    call_id: str
+    call_id: Optional[str] = None
     carrier_mc_number: Optional[str] = None
     carrier_name: Optional[str] = None
     selected_load_id: Optional[str] = None

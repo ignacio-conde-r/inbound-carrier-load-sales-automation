@@ -7,7 +7,7 @@ class Load(Base):
 
     load_id = Column(String, primary_key=True)
     origin = Column(String, nullable=False)
-    destination = Column(String, nullable=False)
+    destination = Column(String, nullable=False) 
     pickup_datetime = Column(DateTime, nullable=False)
     delivery_datetime = Column(DateTime, nullable=False)
     equipment_type = Column(String, nullable=False)
