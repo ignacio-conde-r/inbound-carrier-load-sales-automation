@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional, Literal
 
 
@@ -21,6 +21,16 @@ class CallLogRequest(BaseModel):
     sentiment: Optional[Literal["positive", "neutral", "negative"]] = "neutral"
     transcript_summary: Optional[str] = None
     full_transcript: Optional[str] = None
+
+    @field_validator("carrier_mc_number", mode="before")
+    @classmethod
+    def normalize_mc_number(cls, v):
+        if v is None:
+            return None
+        v = str(v).strip()
+        if not v.upper().startswith("MC-"):
+            v = f"MC-{v}"
+        return v
 
 
 class CallLogResponse(BaseModel):
