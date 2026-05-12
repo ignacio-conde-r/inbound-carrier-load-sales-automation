@@ -9,7 +9,7 @@ class CallLogRequest(BaseModel):
     carrier_name: Optional[str] = None
     selected_load_id: Optional[str] = None
     final_offer: Optional[float] = None
-    outcome: Literal[
+    outcome: Optional[Literal[
         "booked",
         "carrier_not_eligible",
         "no_matching_load",
@@ -17,8 +17,8 @@ class CallLogRequest(BaseModel):
         "carrier_not_interested",
         "transferred",
         "failed",
-    ]
-    sentiment: Literal["positive", "neutral", "negative"]
+    ]] = "failed"
+    sentiment: Optional[Literal["positive", "neutral", "negative"]] = "neutral"
     transcript_summary: Optional[str] = None
     full_transcript: Optional[str] = None
 
