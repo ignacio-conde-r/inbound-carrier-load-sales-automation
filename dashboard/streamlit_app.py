@@ -2,8 +2,8 @@ import streamlit as st
 import requests
 import pandas as pd
 from datetime import datetime
-
 import os
+
 API_BASE = os.getenv("API_BASE", "http://localhost:8000")
 API_KEY = "hr-backend-key-2026-ignacio"
 HEADERS = {"X-API-Key": API_KEY}
@@ -41,15 +41,15 @@ if summary:
     st.divider()
     col1, col2 = st.columns(2)
     with col1:
-        avg_p = f"${summary['avg_agreed_price']:,.2f}" if summary['avg_agreed_price'] else "N/A"
-        avg_r = f"{summary['avg_negotiation_rounds']:.1f}" if summary['avg_negotiation_rounds'] else "N/A"
+        avg_p = f"${summary['avg_agreed_price']:,.2f}" if summary.get('avg_agreed_price') else "N/A"
+        avg_r = f"{summary['avg_negotiation_rounds']:.1f}" if summary.get('avg_negotiation_rounds') else "N/A"
         st.metric("Avg Agreed Price", avg_p)
         st.metric("Avg Negotiation Rounds", avg_r)
     with col2:
-        pos = summary["positive_sentiment"]
-        neg = summary["negative_sentiment"]
-        total = summary["total_calls"]
-        neutral = total - pos - neg
+        pos = summary.get("positive_sentiment", 0)
+        neg = summary.get("negative_sentiment", 0)
+        total = summary.get("total_calls", 0)
+        neutral = max(0, total - pos - neg)
         if total > 0:
             import plotly.graph_objects as go
             fig = go.Figure(go.Pie(
@@ -65,6 +65,13 @@ if calls:
     st.subheader("📞 Recent Calls")
     df = pd.DataFrame(calls)
     if not df.empty:
+        # Normalize column names from API
+        rename_map = {
+            "carrier_mc_number": "carrier_mc",
+            "selected_load_id": "load_id",
+        }
+        df = df.rename(columns=rename_map)
+
         outcome_colors = {
             "booked": "🟢",
             "carrier_not_eligible": "🔴",
@@ -74,9 +81,19 @@ if calls:
             "transferred": "🟢",
             "failed": "🔴",
         }
-        df["status"] = df["outcome"].map(lambda x: f"{outcome_colors.get(x, '⚪')} {x}")
+        df["status"] = df["outcome"].map(
+            lambda x: f"{outcome_colors.get(x, '⚪')} {x}" if pd.notna(x) else "⚪ unknown"
+        )
         sentiment_map = {"positive": "😊", "neutral": "😐", "negative": "😞"}
-        df["mood"] = df["sentiment"].map(lambda x: sentiment_map.get(x, ""))
+        df["mood"] = df["sentiment"].map(
+            lambda x: sentiment_map.get(x, "❓") if pd.notna(x) else "❓"
+        )
+        # Format final_offer
+        if "final_offer" in df.columns:
+            df["final_offer"] = df["final_offer"].apply(
+                lambda x: f"${x:,.0f}" if pd.notna(x) else "—"
+            )
+
         display_cols = ["created_at", "carrier_mc", "carrier_name", "load_id", "final_offer", "status", "mood"]
         existing = [c for c in display_cols if c in df.columns]
         st.dataframe(df[existing], use_container_width=True, hide_index=True)
@@ -99,6 +116,10 @@ if negotiations:
         fig2.update_layout(height=300, showlegend=False, margin=dict(t=40, b=0))
         st.plotly_chart(fig2, use_container_width=True)
 
+        # Shorten call_id for display
+        df_neg["call_id"] = df_neg["call_id"].apply(
+            lambda x: x[:8] + "..." if isinstance(x, str) and len(x) > 8 else x
+        )
         st.dataframe(
             df_neg[["call_id", "load_id", "round", "carrier_offer", "counter_offer", "decision"]],
             use_container_width=True,
