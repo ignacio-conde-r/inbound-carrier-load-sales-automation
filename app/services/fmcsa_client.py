@@ -48,6 +48,8 @@ def _parse_fmcsa_response(mc_number: str, data: dict) -> CarrierVerifyResponse:
     carrier = content[0].get("carrier", {}) if isinstance(content, list) and len(content) > 0 else {}
 
     allowed_to_operate = str(carrier.get("allowedToOperate", "N")).upper() == "Y"
+    status_code = str(carrier.get("statusCode", "")).upper()
+    common_authority = str(carrier.get("commonAuthorityStatus", "")).upper()
     dot_number = str(carrier.get("dotNumber", ""))
     legal_name = carrier.get("legalName") or carrier.get("name")
     safety_rating = str(carrier.get("safetyRating", "")).lower()
@@ -61,8 +63,31 @@ def _parse_fmcsa_response(mc_number: str, data: dict) -> CarrierVerifyResponse:
     else:
         safety_status = "unknown"
 
-    authority_status = "active" if allowed_to_operate else "inactive"
-    eligible = allowed_to_operate and safety_status in ("acceptable", "unknown")
+    # Carrier is eligible only if:
+    # 1. allowedToOperate is Y
+    # 2. statusCode is A (Active) — not I (Inactive) or O (Out of Service)
+    # 3. commonAuthorityStatus is A (Active) — not I (Inactive) or N (Not authorized)
+    # 4. safety_status is not unsatisfactory
+    truly_active = (
+        allowed_to_operate
+        and status_code == "A"
+        and common_authority == "A"
+    )
+
+    authority_status = "active" if truly_active else "inactive"
+    eligible = truly_active and safety_status != "unsatisfactory"
+
+    if not eligible:
+        if status_code != "A":
+            reason = "Carrier USDOT status is inactive or out of service."
+        elif common_authority != "A":
+            reason = "Carrier does not have active operating authority."
+        elif not allowed_to_operate:
+            reason = "Carrier is not allowed to operate."
+        else:
+            reason = "Carrier safety status is unsatisfactory."
+    else:
+        reason = "Verified via FMCSA live API."
 
     return CarrierVerifyResponse(
         mc_number=mc_number,
@@ -71,7 +96,7 @@ def _parse_fmcsa_response(mc_number: str, data: dict) -> CarrierVerifyResponse:
         eligible=eligible,
         authority_status=authority_status,
         safety_status=safety_status,
-        reason="Verified via FMCSA live API.",
+        reason=reason,
     )
 
 
