@@ -32,6 +32,7 @@ summary = fetch("/metrics/summary")
 calls = fetch("/metrics/calls")
 negotiations = fetch("/metrics/negotiations")
 
+# ── KPIs ──────────────────────────────────────────────────────────────────────
 if summary:
     st.subheader("📊 Key Performance Indicators")
     c1, c2, c3, c4, c5, c6 = st.columns(6)
@@ -43,12 +44,45 @@ if summary:
     c6.metric("Price Rejected", summary["price_rejected"])
 
     st.divider()
+
     col1, col2 = st.columns(2)
     with col1:
         avg_p = f"${summary['avg_agreed_price']:,.2f}" if summary.get('avg_agreed_price') else "N/A"
         avg_r = f"{summary['avg_negotiation_rounds']:.1f}" if summary.get('avg_negotiation_rounds') else "N/A"
         st.metric("Avg Agreed Price", avg_p)
         st.metric("Avg Negotiation Rounds", avg_r)
+
+        # Outcome distribution
+        if summary["total_calls"] > 0:
+            import plotly.express as px
+            outcome_data = {
+                "Outcome": ["Booked", "Ineligible", "No Match", "Price Rejected"],
+                "Count": [
+                    summary.get("booked", 0),
+                    summary.get("ineligible", 0),
+                    summary.get("no_match", 0),
+                    summary.get("price_rejected", 0),
+                ]
+            }
+            df_outcomes = pd.DataFrame(outcome_data)
+            df_outcomes = df_outcomes[df_outcomes["Count"] > 0]
+            if not df_outcomes.empty:
+                fig_out = px.bar(
+                    df_outcomes,
+                    x="Outcome",
+                    y="Count",
+                    color="Outcome",
+                    color_discrete_map={
+                        "Booked": "#22c55e",
+                        "Ineligible": "#ef4444",
+                        "No Match": "#f59e0b",
+                        "Price Rejected": "#ef4444",
+                    },
+                    title="Call Outcome Distribution",
+                )
+                fig_out.update_layout(height=260, showlegend=False, margin=dict(t=40, b=0))
+                st.plotly_chart(fig_out, use_container_width=True)
+
     with col2:
         pos = summary.get("positive_sentiment", 0)
         neg = summary.get("negative_sentiment", 0)
@@ -65,6 +99,20 @@ if summary:
             fig.update_layout(title="Carrier Sentiment", height=280, margin=dict(t=40, b=0, l=0, r=0))
             st.plotly_chart(fig, use_container_width=True)
 
+        # Margin saved metric
+        if negotiations:
+            df_neg_raw = pd.DataFrame(negotiations)
+            if not df_neg_raw.empty and "max_authorized_price" in df_neg_raw.columns:
+                accepted = df_neg_raw[df_neg_raw["decision"] == "accept"].copy()
+                if not accepted.empty:
+                    accepted["margin_saved"] = accepted["max_authorized_price"] - accepted["carrier_offer"]
+                    total_saved = accepted["margin_saved"].sum()
+                    avg_saved = accepted["margin_saved"].mean()
+                    ms1, ms2 = st.columns(2)
+                    ms1.metric("Total Margin Saved", f"${total_saved:,.0f}")
+                    ms2.metric("Avg Margin Saved / Deal", f"${avg_saved:,.0f}")
+
+# ── RECENT CALLS ──────────────────────────────────────────────────────────────
 if calls:
     st.subheader("📞 Recent Calls")
     df = pd.DataFrame(calls)
@@ -82,31 +130,42 @@ if calls:
                 .dt.strftime("%Y-%m-%d %H:%M:%S (CT)")
             )
 
-        outcome_colors = {
-            "booked": "🟢",
-            "carrier_not_eligible": "🔴",
-            "no_matching_load": "🟡",
-            "price_rejected": "🔴",
-            "carrier_not_interested": "🟠",
-            "transferred": "🟢",
-            "failed": "🔴",
+        outcome_labels = {
+            "booked": "✅ Booked",
+            "carrier_not_eligible": "🚫 Ineligible",
+            "no_matching_load": "🔍 No Match",
+            "price_rejected": "❌ Price Rejected",
+            "carrier_not_interested": "📵 Not Interested",
+            "transferred": "↗️ Transferred",
+            "failed": "⚠️ Failed",
         }
         df["status"] = df["outcome"].map(
-            lambda x: f"{outcome_colors.get(x, '⚪')} {x}" if pd.notna(x) else "⚪ unknown"
+            lambda x: outcome_labels.get(x, f"⚪ {x}") if pd.notna(x) else "⚪ Unknown"
         )
-        sentiment_map = {"positive": "😊", "neutral": "😐", "negative": "😞"}
-        df["mood"] = df["sentiment"].map(
-            lambda x: sentiment_map.get(x, "❓") if pd.notna(x) else "❓"
+
+        sentiment_labels = {
+            "positive": "Positive",
+            "neutral": "Neutral",
+            "negative": "Negative",
+        }
+        df["sentiment_label"] = df["sentiment"].map(
+            lambda x: sentiment_labels.get(x, "Unknown") if pd.notna(x) else "Unknown"
         )
+
         if "final_offer" in df.columns:
             df["final_offer"] = df["final_offer"].apply(
-                lambda x: f"${x:,.0f}" if pd.notna(x) else "—"
+                lambda x: f"${x:,.0f}" if pd.notna(x) and x > 0 else "—"
             )
 
-        display_cols = ["created_at", "carrier_mc", "carrier_name", "load_id", "final_offer", "status", "mood"]
+        display_cols = ["created_at", "carrier_mc", "carrier_name", "load_id", "final_offer", "status", "sentiment_label"]
         existing = [c for c in display_cols if c in df.columns]
-        st.dataframe(df[existing], use_container_width=True, hide_index=True)
+        st.dataframe(
+            df[existing].rename(columns={"sentiment_label": "sentiment"}),
+            use_container_width=True,
+            hide_index=True
+        )
 
+# ── NEGOTIATION EVENTS ────────────────────────────────────────────────────────
 if negotiations:
     st.subheader("💰 Negotiation Events")
     df_neg = pd.DataFrame(negotiations)
@@ -128,12 +187,18 @@ if negotiations:
         df_neg["call_id"] = df_neg["call_id"].apply(
             lambda x: x[:8] + "..." if isinstance(x, str) and len(x) > 8 else x
         )
+
+        display_neg_cols = ["call_id", "load_id", "round", "carrier_offer", "counter_offer", "decision"]
+        if "max_authorized_price" in df_neg.columns:
+            display_neg_cols.append("max_authorized_price")
+
         st.dataframe(
-            df_neg[["call_id", "load_id", "round", "carrier_offer", "counter_offer", "decision"]],
+            df_neg[[c for c in display_neg_cols if c in df_neg.columns]],
             use_container_width=True,
             hide_index=True,
         )
 
+# ── FOOTER ────────────────────────────────────────────────────────────────────
 st.divider()
 col_refresh, col_reset = st.columns([1, 1])
 
